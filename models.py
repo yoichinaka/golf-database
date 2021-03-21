@@ -43,7 +43,8 @@ def db_drop_and_create_all():
 class Person(db.Model):
   __tablename__ = 'persons'
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(), nullable=False)
+  user_id = db.Column(db.String(), unique = False, nullable = True)
+  name = db.Column(db.String(30), nullable=False)
 
 class Course(db.Model):
     __tablename__ = 'course'
@@ -81,6 +82,7 @@ class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique = True, nullable = False)
     # name must be unique
+    user_id = db.Column(db.String(), unique = False, nullable = True)
     image_link = db.Column(db.String(500))
     seeking_course = db.Column(db.Boolean, default = False)
     seeking_description = db.Column(db.String(120))

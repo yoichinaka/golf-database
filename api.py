@@ -51,20 +51,25 @@ def retrieve_players():
                     }), 200
 
 @app.route('/players', methods=['POST'])
-def create_player():
+@requires_auth('post:player')
+def create_player(payload):
+    print(payload.get('sub'))
+
     body = request.get_json()
     new_name = body.get('name', None)
     new_image_link = body.get('image_link', None)
     new_seeking_course = body.get('seeking_course', None)
     new_seeking_description = body.get('seeking_description', None)
     new_best_score = body.get('best_score', None)
-    print(new_name, new_best_score)
+    new_user_id = payload.get('sub')
+    print(new_name, new_best_score, new_user_id)
     try:
         player = Player(name=new_name,
                         image_link=new_image_link, 
                         seeking_course=new_seeking_course,
                         seeking_description=new_seeking_description,
-                        best_score=new_best_score)
+                        best_score=new_best_score,
+                        user_id=new_user_id)
         player.insert()
         added_id = Player.query.filter(
                 Player.name == new_name).one_or_none().format().get('id')
@@ -122,14 +127,35 @@ def retrieve_scores():
                     'scores': scores,
                     }), 200
 
-@app.route('/scores', methods=['POST'])
-def create_scores():
+@app.route('/players/<int:player_id>/scores', methods=['GET'])
+def retrive_players_scores(player_id):
+    scores=[]
+    score_query = Score.query.filter(Player.id == player_id).all()
+    for score in score_query:
+        scores.append([score.score, score.course_id, score.date])
+        print(score.score)
+    if len(scores) == 0:
+        abort(404)
+    return jsonify({'success': True,
+                    'scores': scores,
+                    }), 200
+
+@app.route('/players/<int:player_id>/scores', methods=['POST'])
+@requires_auth('post_delete_update:score')
+def create_score(payload, player_id):
+    sub=payload.get('sub')
+    check_user_id = Player.query.filter(Player.user_id == sub).one_or_none()
+    print(check_user_id.id, player_id)
+    if check_user_id.id != player_id:
+        print(' different user, no permission to create')
+        abort(401)
+
     body = request.get_json()
-    new_player_id = body.get('player_id', None)
+    new_player_id = player_id
     new_course_id = body.get('course_id', None)
     new_score = body.get('score', None)
     new_date = body.get('date', None)
-    print(new_player_id, new_course_id, new_score)
+    print(new_player_id, new_course_id, new_score, new_date)
     try:
         score = Score(player_id=new_player_id,
                         course_id=new_course_id,
@@ -141,8 +167,15 @@ def create_scores():
     except BaseException:
         abort(422)
 
-@app.route('/scores/<int:score_id>', methods=['DELETE'])
-def delete_score(score_id):
+@app.route('/players/<int:player_id>/scores/<int:score_id>', methods=['DELETE'])
+@requires_auth('post_delete_update:score')
+def delete_score(payload, player_id, score_id):
+    sub=payload.get('sub')
+    check_user_id = Player.query.filter(Player.user_id == sub).one_or_none()
+    print(check_user_id.id, player_id)
+    if check_user_id.id != player_id:
+        print(' no permission to delete')
+        abort(401)
     score = Score.query.filter(
         Score.id == score_id).one_or_none()
     if score is None:
@@ -152,12 +185,20 @@ def delete_score(score_id):
 
     return jsonify({'deleted_id': score_id})
 
-@app.route('/scores/<int:score_id>', methods=['PATCH'])
-#@requires_auth('patch:drinks')
-def update_score(score_id):
+@app.route('/players/<int:player_id>/scores/<int:score_id>', methods=['PATCH'])
+@requires_auth('post_delete_update:score')
+def update_score(payload, player_id, score_id):
+    sub=payload.get('sub')
+    check_user_id = Player.query.filter(Player.user_id == sub).one_or_none()
+    print(check_user_id.id, player_id)
+    if check_user_id.id != player_id:
+        print(' no permission to update')
+        abort(401)
+
     score = Score.query.filter(Score.id == score_id).one_or_none()
     if score is None:
         abort(404)
+
     body = request.get_json()
     update_course_id = body.get('course_id', None)
     update_score = body.get('score', None)
@@ -173,94 +214,7 @@ def update_score(score_id):
     except BaseException:
         abort(422)
 
-
-
-@app.route('/drinks')
-def retrieve_drinks():
-    drinks = []
-    drink_query = Drink.query.order_by(Drink.id).all()
-    for drink in drink_query:
-        drinks.append(drink.recipe)#(drink.short())
-        print(drink.recipe)
-    if len(drinks) == 0:
-        abort(404)
-    return jsonify({'success': True,
-                    'drinks': drinks,
-                    }), 200
-
-
-@app.route('/drinks-detail')
-@requires_auth('get:drinks-detail')
-def retrieve_drink_detail(payload):
-    drink_query = Drink.query.all()
-    drinks = []
-    drink_query = Drink.query.order_by(Drink.id).all()
-    for drink in drink_query:
-        drinks.append(drink.long())
-    if len(drinks) == 0:
-        abort(404)
-    return jsonify({'success': True,
-                    'drinks': drinks,
-                    }), 200
-
-@app.route('/drinks', methods=['POST'])
-#@requires_auth('post:drinks')
-def create_drink():#(payload):
-    body = request.get_json()
-    # the required datatype is [{'color': string, 'name':string,
-    # 'parts':number}]
-    new_title = body.get('title', None)
-    new_recipe = body.get('recipe', None)
-    # new_recipe = [body.get('recipe', None)] 
-    # this was used for postman test 
-    try:
-        new_drink = Drink(title=new_title, recipe=json.dumps(new_recipe))
-        new_drink.insert()
-        return jsonify({'success': True,
-                        'drinks': [new_drink.long()],
-                        }), 200
-    except BaseException:
-        abort(422)
-
-
-@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
-@requires_auth('patch:drinks')
-def update_drink(payload, drink_id):
-    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
-    if drink is None:
-        abort(404)
-    body = request.get_json()
-    update_recipe = body.get('recipe', None)
-    try:
-        drink.recipe = json.dumps(update_recipe)
-        drink.update()
-        return jsonify({'success': True,
-                        'drinks': [drink.long()],
-                        }), 200
-    except BaseException:
-        abort(422)
-
-
-@app.route('/drinks/<int:drink_id>', methods=['DELETE'])
-@requires_auth('delete:drinks')
-def delete_drink(payload, drink_id):
-    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
-    if drink is None:
-        abort(404)
-    try:
-        drink.delete()
-        return jsonify({'success': True,
-                        'delete': drink_id,
-                        }), 200
-    except BaseException:
-        abort(422)
-
-
 # Error Handling
-'''
-Example error handling for unprocessable entity
-'''
-
 
 @app.errorhandler(422)
 def unprocessable(error):
