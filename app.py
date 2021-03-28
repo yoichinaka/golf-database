@@ -1,7 +1,5 @@
 import os
-#import babel
 from flask import Flask, request, jsonify, abort
-#from sqlalchemy import exc
 import json
 from flask_cors import CORS
 
@@ -25,17 +23,16 @@ def create_app(test_config=None):
         return response
 
     def paginate(request, selection):
+        #For pagenate the players data
         display_per_page = 10
         page = request.args.get('page', 1, type=int)
         start = (page - 1) * display_per_page
         end = start + display_per_page
         paginated_data = selection[start:end]
-        #questions = [question.format() for question in selection]
-        #current_questions = questions[start:end]
-
         return paginated_data
 
     @app.route('/players')
+    # Get the all players data
     def retrieve_players():
         players = []
         player_query = Player.query.order_by(Player.id).all()
@@ -50,20 +47,20 @@ def create_app(test_config=None):
 
     @app.route('/players', methods=['POST'])
     @requires_auth('post:player')
+    # Post a new player, user_id come from Auth id.
     def create_player(payload):
-        print(payload.get('sub'))
         body = request.get_json()
         new_name = body.get('name', None)
-        new_image_link = body.get('image_link', None)       
+        new_image_link = body.get('image_link', None)
+        # get user_id from JWT payload
         new_user_id = payload.get('sub')
-        print(new_name, new_user_id)
         try:
             player = Player(name=new_name,
                             image_link=new_image_link, 
                             user_id=new_user_id)
             player.insert()
             added_id = Player.query.filter(Player.name == new_name).one_or_none()
-            print(added_id.id)
+            print('added id', added_id.id)
             return jsonify({'success': True,
                             'added_name': new_name}),200
 
@@ -71,12 +68,12 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/courses')
+    # GET all course data
     def retrieve_courses():
         courses = []
         course_query = Course.query.order_by(Course.id).all()
         for course in course_query:
             courses.append([course.name, course.state, course.image_link])
-            #print(course.name)
         if len(courses) == 0:
             abort(404)
         return jsonify({'success': True,
@@ -84,6 +81,7 @@ def create_app(test_config=None):
                         }), 200
 
     @app.route('/courses', methods=['POST'])
+    # POST a course data, only course manager can post the data
     @requires_auth('post:course')
     def create_courses(payload):
         print(payload.get('sub'))
@@ -91,22 +89,21 @@ def create_app(test_config=None):
         new_name = body.get('name', None)
         new_state = body.get('state', None)
         new_image_link = body.get('image_link', None)
-        print(new_name, new_state)
         try:
             course = Course(name=new_name,
                             state=new_state,
                             image_link=new_image_link)
-            print(course)
             course.insert()
             added_id = Course.query.filter(
                     Course.name == new_name).one_or_none().format().get('id')
-            print(added_id)
+            print('added_id', added_id)
             return jsonify({'added_name': new_name})
 
         except BaseException:
             abort(422)
 
     @app.route('/scores')
+    #Get all score from all players
     def retrieve_scores():
         scores = []
         score_query = Score.query.order_by(Score.score).all()
@@ -119,12 +116,12 @@ def create_app(test_config=None):
                         }), 200
 
     @app.route('/players/<int:player_id>/scores', methods=['GET'])
+    #Get all score from player_id
     def retrive_players_scores(player_id):
         scores=[]
         score_query = Score.query.filter(Score.player_id == player_id).all()
         for score in score_query:
             scores.append([score.score, score.course_id, score.date])
-            print(score.score)
         if len(scores) == 0:
             abort(404)
         return jsonify({'success': True,
@@ -133,11 +130,12 @@ def create_app(test_config=None):
 
     @app.route('/players/<int:player_id>/scores', methods=['POST'])
     @requires_auth('post_delete_update:score')
+    #Post a new score of player_id, only player can post his score.
     def create_score(payload, player_id):
         sub=payload.get('sub')
-        #print(sub)
         check_user_id = Player.query.filter(Player.user_id == sub).one_or_none()
-        print(check_user_id.id, player_id)
+        # check if player_id is same as player_id come from JWT payload
+        # if they are not same, abort.
         if check_user_id.id != player_id:
             print(' different user, no permission to create')
             abort(401)
@@ -147,7 +145,6 @@ def create_app(test_config=None):
         new_course_id = body.get('course_id', None)
         new_score = body.get('score', None)
         new_date = body.get('date', None)
-        print(new_player_id, new_course_id, new_score, new_date)
         try:
             score = Score(player_id=new_player_id,
                             course_id=new_course_id,
@@ -161,10 +158,12 @@ def create_app(test_config=None):
 
     @app.route('/players/<int:player_id>/scores/<int:score_id>', methods=['DELETE'])
     @requires_auth('post_delete_update:score')
+    # Delete score from a player. input player_id and score_id as parameter
     def delete_score(payload, player_id, score_id):
         sub=payload.get('sub')
         check_user_id = Player.query.filter(Player.user_id == sub).one_or_none()
-        print(check_user_id.id, player_id)
+        # check if player_id is same as player_id come from JWT payload
+        # if they are not same, abort.
         if check_user_id.id != player_id:
             print(' no permission to delete')
             abort(401)
@@ -179,14 +178,15 @@ def create_app(test_config=None):
 
     @app.route('/players/<int:player_id>/scores/<int:score_id>', methods=['PATCH'])
     @requires_auth('post_delete_update:score')
+    #Update a score of a player. A player can update his own score only.
     def update_score(payload, player_id, score_id):
         sub=payload.get('sub')
         check_user_id = Player.query.filter(Player.user_id == sub).one_or_none()
-        print(check_user_id.id, player_id)
+        # check if player_id is same as player_id come from JWT payload
+        # if they are not same, abort.
         if check_user_id.id != player_id:
             print(' no permission to update')
             abort(401)
-
         score = Score.query.filter(Score.id == score_id).one_or_none()
         if score is None:
             abort(404)
