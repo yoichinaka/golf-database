@@ -4,7 +4,8 @@ venv
 env
 frontend/node_modules/
 .history
-migrations
+old
+flaskr
 
 # OS generated files #
 ######################

@@ -1,10 +1,11 @@
 import os, sys
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 from flask_migrate import Migrate
 
-database_filename = "golf"
+#database_filename = "golf_test"
+database_filename = os.getenv('database_name')
 project_dir = os.path.dirname(os.path.abspath(__file__))
 #database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
 database_path = "postgres://{}/{}".format('localhost:5432', database_filename)
@@ -16,14 +17,14 @@ setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
 
-
 def setup_db(app):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
-    migrate = Migrate(app, db)
-    print('setup%%%%%')
+    #db.create_all()
+    #migrate = Migrate(app, db) # When create and dedug the Model and use migration, remove #
+    print('setup%%%%%',database_path)
 
 
 '''
@@ -40,11 +41,11 @@ def db_drop_and_create_all():
     db.create_all()
 
 
-class Person(db.Model):
-  __tablename__ = 'persons'
-  id = db.Column(db.Integer, primary_key=True)
-  user_id = db.Column(db.String(), unique = False, nullable = True)
-  name = db.Column(db.String(30), nullable=False)
+# class Person(db.Model):
+#   __tablename__ = 'persons'
+#   id = db.Column(db.Integer, primary_key=True)
+#   user_id = db.Column(db.String(), unique = False, nullable = True)
+#   name = db.Column(db.String(30), nullable=False)
 
 class Course(db.Model):
     __tablename__ = 'course'
@@ -84,9 +85,9 @@ class Player(db.Model):
     # name must be unique
     user_id = db.Column(db.String(), unique = False, nullable = True)
     image_link = db.Column(db.String(500))
-    seeking_course = db.Column(db.Boolean, default = False)
-    seeking_description = db.Column(db.String(120))
-    best_score = db.Column(db.String(3))
+    #seeking_course = db.Column(db.Boolean, default = False)
+    #seeking_description = db.Column(db.String(120))
+    #best_score = db.Column(db.String(3))
     score = db.relationship('Score', backref='player')
 
     def insert(self):
@@ -129,83 +130,83 @@ class Score(db.Model):
     def update(self):
         db.session.commit()
 
-class Drink(db.Model):
-    # Autoincrementing, unique primary key
+# class Drink(db.Model):
+#     # Autoincrementing, unique primary key
 
-    id = db.Column(db.Integer, primary_key=True)
-    #id = Column(Integer().with_variant(Integer, "sqlite"), primary_key=True)
-    # String Title
-    title = Column(String(100), unique=True)
-    # the ingredients blob - this stores a lazy json blob
-    # the required datatype is
-    #  [{'color': string, 'name':string, 'parts':number}]
-    recipe = Column(String(180), nullable=False)
+#     id = db.Column(db.Integer, primary_key=True)
+#     #id = Column(Integer().with_variant(Integer, "sqlite"), primary_key=True)
+#     # String Title
+#     title = Column(String(100), unique=True)
+#     # the ingredients blob - this stores a lazy json blob
+#     # the required datatype is
+#     #  [{'color': string, 'name':string, 'parts':number}]
+#     recipe = Column(String(180), nullable=False)
 
-    '''
-    short()
-        short form representation of the Drink model
-    '''
+#     '''
+#     short()
+#         short form representation of the Drink model
+#     '''
 
-    def short(self):
-        short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in json.loads(self.recipe)]
-        print(self.id, self.title)
-        return {
-            'id': self.id,
-            'title': self.title,
-            'recipe': short_recipe
-        }
+#     def short(self):
+#         short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in json.loads(self.recipe)]
+#         print(self.id, self.title)
+#         return {
+#             'id': self.id,
+#             'title': self.title,
+#             'recipe': short_recipe
+#         }
 
-    '''
-    long()
-        long form representation of the Drink model
-    '''
+#     '''
+#     long()
+#         long form representation of the Drink model
+#     '''
 
-    def long(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'recipe': json.loads(self.recipe)
-        }
+#     def long(self):
+#         return {
+#             'id': self.id,
+#             'title': self.title,
+#             'recipe': json.loads(self.recipe)
+#         }
 
-    '''
-    insert()
-        inserts a new model into a database
-        the model must have a unique name
-        the model must have a unique id or null id
-        EXAMPLE
-            drink = Drink(title=req_title, recipe=req_recipe)
-            drink.insert()
-    '''
+#     '''
+#     insert()
+#         inserts a new model into a database
+#         the model must have a unique name
+#         the model must have a unique id or null id
+#         EXAMPLE
+#             drink = Drink(title=req_title, recipe=req_recipe)
+#             drink.insert()
+#     '''
 
-    def insert(self):
-        db.session.add(self)
-        db.session.commit()
+#     def insert(self):
+#         db.session.add(self)
+#         db.session.commit()
 
-    '''
-    delete()
-        deletes a new model into a database
-        the model must exist in the database
-        EXAMPLE
-            drink = Drink(title=req_title, recipe=req_recipe)
-            drink.delete()
-    '''
+#     '''
+#     delete()
+#         deletes a new model into a database
+#         the model must exist in the database
+#         EXAMPLE
+#             drink = Drink(title=req_title, recipe=req_recipe)
+#             drink.delete()
+#     '''
 
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+#     def delete(self):
+#         db.session.delete(self)
+#         db.session.commit()
 
-    '''
-    update()
-        updates a new model into a database
-        the model must exist in the database
-        EXAMPLE
-            drink = Drink.query.filter(Drink.id == id).one_or_none()
-            drink.title = 'Black Coffee'
-            drink.update()
-    '''
+#     '''
+#     update()
+#         updates a new model into a database
+#         the model must exist in the database
+#         EXAMPLE
+#             drink = Drink.query.filter(Drink.id == id).one_or_none()
+#             drink.title = 'Black Coffee'
+#             drink.update()
+#     '''
 
-    def update(self):
-        db.session.commit()
+#     def update(self):
+#         db.session.commit()
 
-    def __repr__(self):
-        return json.dumps(self.short())
+#     def __repr__(self):
+#         return json.dumps(self.short())

@@ -37,6 +37,7 @@ def get_token_auth_header():
     """Obtains the Access Token from the Authorization Header
     """
     auth = request.headers.get('Authorization', None)
+    #print('DDDDDD', auth)
     if not auth:
         # abort(401)
         raise AuthError({
@@ -60,6 +61,7 @@ def get_token_auth_header():
             'description': 'Authorization header must be bearer token.'
         }, 401)
     token = parts[1]
+    #print('EEEEEE', token)
     return token
     # raise Exception('Not Implemented')
 
@@ -114,6 +116,7 @@ def verify_decode_jwt(token):
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
     rsa_key = {}
+    #print('un', unverified_header, 'jwk', jwks)
     if 'kid' not in unverified_header:
         raise AuthError({
             'code': 'invalid_header',
@@ -140,6 +143,7 @@ def verify_decode_jwt(token):
             return payload
 
         except jwt.ExpiredSignatureError:
+            print('&&&&&&&&&&&& expire')
             raise AuthError({
                 'code': 'token_expired',
                 'description': 'Token expired.'
@@ -182,6 +186,7 @@ def requires_auth(permission=''):
         def wrapper(*args, **kwargs):
             token = get_token_auth_header()
             payload = verify_decode_jwt(token)
+            print('payload', payload)
             check_permissions(permission, payload)
             return f(payload, *args, **kwargs)
         return wrapper
