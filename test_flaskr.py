@@ -4,8 +4,11 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from app import create_app
 from models import setup_db, Player, Course, Score
-from test_token import course_manager_token, player1_token, player2_token
+#from test_token import course_manager_token, player1_token, player2_token
 
+course_manager_token=os.environ['course_manager_token']
+player1_token=os.environ['player1_token']
+player2_token=os.environ['player2_token']
 
 class GolfTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
