@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 #database_filename = "golf_test"
 #database_filename = os.getenv('database_name')
 database_path = os.environ['DATABASE_URL']
-project_dir = os.path.dirname(os.path.abspath(__file__))
+#project_dir = os.path.dirname(os.path.abspath(__file__))
 #database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
 #database_path = "postgres://{}/{}".format('localhost:5432', database_filename)
 
