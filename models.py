@@ -25,7 +25,7 @@ def setup_db(app):
     db.init_app(app)
     #db.create_all()
     #migrate = Migrate(app, db) # When create and dedug the Model and use migration, remove #
-    print('setup%%%%%',database_path)
+    print('&&&setup%%%%%',database_path)
 
 
 '''
