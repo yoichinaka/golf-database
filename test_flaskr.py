@@ -4,8 +4,8 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from app import create_app
 from models import setup_db, Player, Course, Score
-#from test_token import course_manager_token, player1_token, player2_token
 
+#set up JWT token
 course_manager_token=os.environ['course_manager_token']
 player1_token=os.environ['player1_token']
 player2_token=os.environ['player2_token']
@@ -17,7 +17,6 @@ class GolfTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        #setup_db(self.app)
 
 
     def tearDown(self):
