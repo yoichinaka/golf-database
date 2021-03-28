@@ -3,11 +3,15 @@ from flask import request, _request_ctx_stack, abort
 from functools import wraps
 from jose import jwt, JWTError
 from urllib.request import urlopen
+import os
 
 
-AUTH0_DOMAIN = 'dev-awrgnugr.jp.auth0.com'
-ALGORITHMS = ['RS256']
-API_AUDIENCE = 'Golf'
+# AUTH0_DOMAIN = 'dev-awrgnugr.jp.auth0.com'
+# ALGORITHMS = ['RS256']
+# API_AUDIENCE = 'Golf'
+AUTH0_DOMAIN = os.environ['AUTH0_DOMAIN']
+ALGORITHMS = os.environ['ALGORITHMS']
+API_AUDIENCE = os.environ['API_AUDIENCE']
 
 # AuthError Exception
 '''
