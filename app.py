@@ -110,7 +110,7 @@ def create_app(test_config=None):
         score_query = Score.query.order_by(Score.score).all()
         for score in score_query:
             scores.append([score.id, score.player_id,
-                           score.course_id, score.date])
+                           score.course_id, score.score, score.date])
         if len(scores) == 0:
             abort(404)
         return jsonify({'success': True,
