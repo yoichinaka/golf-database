@@ -38,7 +38,7 @@ def create_app(test_config=None):
         player_query = Player.query.order_by(Player.id).all()
         pagenated_player_query = paginate(request, player_query)
         for player in pagenated_player_query:
-            players.append([player.name, player.image_link])
+            players.append([player.id, player.name, player.image_link])
         if len(players) == 0:
             abort(404)
         return jsonify({'success': True,
@@ -74,7 +74,7 @@ def create_app(test_config=None):
         courses = []
         course_query = Course.query.order_by(Course.id).all()
         for course in course_query:
-            courses.append([course.name, course.state, course.image_link])
+            courses.append([course.id, course.name, course.state, course.image_link])
         if len(courses) == 0:
             abort(404)
         return jsonify({'success': True,
