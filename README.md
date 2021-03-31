@@ -1,4 +1,4 @@
-## Golf score Backend
+# Golf score Backend
 This is a database and API for golfer.
 Golf player can add his name and his image_file.
 Then the player can store golf score, course name and date for every golf plays.
@@ -8,23 +8,28 @@ The URL is https://golf-database.herokuapp.com.
 
 ## database structure
 
-player table
-  id |     name     |            user_id             | image_link 
-----+--------------+--------------------------------+------------
-  1 | player1      | auth0|6056a19f618f4a00718103c2 | www1
-  2 | player2      | auth0|6056c9916ee8f20068ca54ac | www2
+
+### player table
+
+| id | name    | user_id                        | image_link |
+| -- | ------- | ------------------------------ | ---------- |
+| 1  | player1 | auth0¥6056a19f618f4a00718103c2 | www1       |
+| 2  | player2 | auth0¥6056c9916ee8f20068ca54ac | www2       |
+
 
  user_id comes from JWT token issued by Auth0 to identify the player.
 
-course table
- id |   name    |  state   | image_link 
-----+-----------+----------+------------
-  1 | TokyoCC   | Tokyo    | www1
-  2 | HakoneCC  | Kanagawa | www2
+### course table
 
-score table
- id | player_id | course_id | score |   date   
-----+-----------+-----------+-------+----------
+| id |   name    |  state   | image_link |
+| -- | --------- | -------- | ---------- |
+|  1 | TokyoCC   | Tokyo    | www1 |
+|  2 | HakoneCC  | Kanagawa | www2 |
+
+### score table
+
+| id | player_id | course_id | score |   date   
+|--- | --------- | --------- | ----- | ------- 
   1 |         1 |         2 |    90 | 20210210
   2 |         2 |         1 |   110 | 20210220
 
@@ -32,7 +37,7 @@ player_id is a foreign key from player table.
 course_id is a foreign key from course table.
 
 ## API document
-### the list of Endpoints
+### The list of Endpoints
     GET '/players'
     POST '/players'
     GET '/courses'
@@ -150,8 +155,8 @@ Follow instructions to install the latest version of python for your platform in
 ### Setup Auth0
 
 1. Create a new Auth0 Account
-2. Select a unique tenant domain. the domain name is written in setup.sh file.
-    the domain name is 'dev-awrgnugr.jp.auth0.com'
+2. Select a unique tenant domain. the domain name should be written in setup.sh file.
+    the domain name is 'dev-awrgnugr.jp.auth0.com' in this repo.
 3. Create a new, single page web application. 
     the application name is 'Golf'
 4. Create a new API. the API name is 'Golf'.
@@ -179,83 +184,101 @@ Go to the Postgres Download page and download Postgres for your machine.
     On Linux, you can run apt-get install postgresql
 
  1. Start postgres server
+
+  ```
   $ pg_ctl -D /usr/local/var/postgres start
+  ```
  
  2. create database
+  ```
   $ createdb golf_test
-
+  ```
 ### Virtual Enviornment
 
 install 
+```
  % git clone https://github.com/yoichinaka/golf-database.git
+```
  Navigate to 'golf-database' directory
+```
  % pip install virtualenv
-
+```
 set up virtual env as env
+```
  % python -m virtualenv env
  % source env/bin/activate
-
+```
 ### PIP Dependencies
-
+```
  % pip install -r requirements.txt
-
+```
 This will install all of the required packages we selected within the `requirements.txt` file.
 
 ### set environment
-
+```
 % source setup.sh
-
+```
 ### Running the server locally
-
+```
 % flask run
-
+```
 to check if it works
+```
 % curl localhost:5000/players
-
+```
 
 ### Unit test ###
 Unit test does the test for all endpoints with Pass and Fail test.
 To do Unit test
-1. % dropdb golf_test
-2. % createdb golf_test
-3. % psql golf_test < golf_test.psql 
-  set up the database for testing
-4. % python test_flaskr.py
-
+```
+% dropdb golf_test
+% createdb golf_test
+```
+set up the database for testing 
+```
+% psql golf_test < golf_test.psql 
+```
+```
+% python test_flaskr.py
+```
 
 ## Implement to Heroku server
-create Heroku account
-install Heroku CLI by
+- Create Heroku account
+
+- install Heroku CLI by
+```
 % brew tap heroku/brew && brew install heroku
 % heroku login 
-
+```
 1. Create an application on Heroku
- % heroku create golf-database 
+ ` % heroku create golf-database ` 
    'golf-database' is a name of application. 
   Then get URL of application and git URL
    https://golf-database.herokuapp.com
    https://git.heroku.com/golf-database.git
 
 2. Create postgres database addon on Heroku
- % heroku addons:create heroku-postgresql:hobby-dev --app golf-database
+ `% heroku addons:create heroku-postgresql:hobby-dev --app ` golf-database
 
 3. Set up the envrionmental variables on Heroku dashboard
  Go to Heroku dashbord using web brawser.
  Click Golf-database >> settings tab >> Reveal Config Vars
   Set 
-   ALGORITHMS = ['RS256']
-   API_AUDIENCE = Golf
-   AUTH0_DOMAIN = dev-awrgnugr.jp.auth0.com
-   DATABASE_URL is set by Heroku automatically
+   - ALGORITHMS = ['RS256']
+   - API_AUDIENCE = Golf
+   - AUTH0_DOMAIN = dev-awrgnugr.jp.auth0.com
+   - DATABASE_URL is set by Heroku automatically
 
 5. Git commit on local and push it to Heroku git server.
+```
   % git init
   % git add .
   % git commit -m '1st commit'
   % git push heroku master
+```
 
 6. Now golf-database api has been deplyed on Heroku server.
 To check this server
- % curl https://golf-database.herokuapp.com/players
+` % curl https://golf-database.herokuapp.com/players `
  and you can check the other api fucntions.
 
